@@ -1,0 +1,47 @@
+[tool.black]
+line-length = 100
+extend-exclude = '''
+(
+    ^/app/migrations
+    | ^/app/apps.py
+    
+    | ^/manage.py
+)
+'''
+
+
+
+
+[tool.pylint.messages_control]
+
+max-line-length = 100
+
+disable = [
+  "missing-docstring",
+  "unused-argument",
+  "no-member",
+  "line-too-long",
+  "too-few-public-methods",
+  "function-redefined",
+  "broad-except",
+  "abstract-method",
+  "too-many-lines",
+  "arguments-differ",
+  "consider-using-with",
+  "duplicate-code",
+  "too-many-return-statements",
+  "inconsistent-return-statements",
+  "too-many-arguments",
+  "too-many-locals",
+  "too-many-branches",
+  "attribute-defined-outside-init",
+  "raise-missing-from"
+]
+
+ignore = [
+    "manage.py",
+    "payment_integration",
+    "migrations",
+    "apps.py",
+]
+

@@ -1,0 +1,116 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{% static 'boot.css' %}">
+    <link rel="stylesheet" href="{% static 'main.css' %}">
+    <link rel="stylesheet" href="{% static 'mine.css' %}">
+
+    <script type="text/javascript" src="{% static 'mine.js' %}"></script>
+    <script type="text/javascript" src="{% static 'jquery.js' %}"></script>
+    <script type="text/javascript" src="{% static 'pooper.js' %}"></script>
+    <script type="text/javascript" src="{% static 'bootjs.js' %}"></script>
+
+    <link rel="icon" href="{% static 'favicon.png' %}">
+
+    
+
+
+    <meta charset='UTF-8'>
+    <meta name="robots" content="noindex">
+    <link rel="shortcut icon" type="image/x-icon"
+        href="//production-assets.codepen.io/assets/favicon/favicon-8ea04875e70c4b0bb41da869e81236e54394d63638a1ef12fa558a4a835f1164.ico" />
+    <link rel="mask-icon" type=""
+        href="//production-assets.codepen.io/assets/favicon/logo-pin-f2d2b6d2c61838f7e76325261b7195c27224080bc099486ddd6dccb469b8e8e6.svg"
+        color="#111" />
+    <link rel="canonical" href="https://codepen.io/emilcarlsson/pen/ZOQZaV?limit=all&page=74&q=contact+" />
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,300' rel='stylesheet' type='text/css'>
+    
+    <script src="https://use.typekit.net/hoy3lrg.js"></script>
+    <script>try { Typekit.load({ async: true }); } catch (e) { }</script>
+    <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css'>
+    <link rel='stylesheet prefetch'
+        href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.2/css/font-awesome.min.css'>
+
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+            <div class="container">
+                
+                {% if request.user.is_authenticated %}
+                
+                <a class="navbar-brand mr-4" style="color: white">User: {{ request.user.lecturer.full_name }}</a>
+                
+                {% endif %}
+                <div class="navbar-nav">
+                    {% if request.user.is_authenticated %}
+                    
+                        
+                            
+                       
+                            
+                        <div class="navbar-nav">
+                            <div class="dropdown">
+                                <!-- <button type="button" class="btn btn-danger">
+                                    Logout
+                                </button> -->
+                                <a href="{% url 'logout-view' %}" class="btn btn-danger">Logout</a>
+                                <!-- <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
+                                                        More Actions
+                                                    </button> -->
+                                <!-- <div class="dropdown-menu">
+                                        
+                                                        <a class="dropdown-item" href="">All Customers</a>
+                                                        <a class="dropdown-item" href="">Add a new customer</a>
+                                        
+                                                        <a class="dropdown-item" href="">Previous Sales</a>
+                                                    </div> -->
+                            </div>
+                        </div>
+
+                     
+                    {% else %}
+                    
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+    <main role="main" class="container">
+        <div class="row">
+            <div class="col-md">
+                {% for message in messages %}
+                <div class="alert {{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+    </main>
+
+</body>
+
+<script>
+    $(document).ready(function () {
+        window.setTimeout(function () {
+            $(".alert").fadeTo(500, 0).slideUp(500, function () {
+                $(this).remove();
+            });
+        }, 5000);
+    });
+</script>
+
+</html>

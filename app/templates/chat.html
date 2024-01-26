@@ -1,0 +1,483 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% block content %}
+
+    <div class="form-control" id="my-form">
+        
+            
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Login</legend>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input class="form-control" type="email" name="email" required id="email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input class="form-control" type="password" name="password" required id="password" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
+                </div>
+            </fieldset>
+    
+            <div class="mb-2">
+                <button class="btn btn-outline-primary" id="submit-buttom" onclick="submitForm()">Login</button>
+            </div>
+        
+    </div>
+
+
+    <div id="all-chats">
+        
+
+        <audio id="chatAudio">
+            <source src="{% static 'notif.ogg' %}" type="audio/mpeg">
+        </audio>
+        
+        <div id="frame">
+            <div id="sidepanel">
+                <div id="profile">
+                    <div class="wrap">
+        
+                        <div class="meta">
+                            <p class="name">
+                                User: {{request.user.email}}
+                            </p>
+                        </div>
+                    </div>
+        
+
+                </div>
+                <div id="contacts">
+                    <ul id="all_chats_list">
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+            
+        
+        </div>
+
+  
+        
+
+    </div>
+
+
+
+
+    <div class="" id="single-chat">
+
+        <audio id="chatAudio">
+            <source src="{% static 'notif.ogg' %}" type="audio/mpeg">
+        </audio>
+
+        <div id="frame">
+            <div id="sidepanel">
+                <div id="profile">
+                    <div class="wrap">
+
+                        <div class="meta">
+                            <p class="name" id="profile_name_2">
+                                
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+                <div id="contacts">
+                    <ul id="all_chats_list2">
+                    
+                    
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="contact-profile" id="contact-profile">
+                    
+                    
+                </div>
+            
+                <div class="messages" id="myMessages">
+                    <ul id="all_messages">
+                        
+                    </ul>
+                </div>
+                <div class="message-input">
+                    <div class="wrap">
+                        <input type="text" placeholder="Write your message..." autofocus />
+                        <button class="submit"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="text" name="" id="hidden_thread_id" hidden>
+        <input type="text" name="" id="hidden_receiver_id" hidden>
+        
+
+    </div>
+
+
+    <script>
+
+        $(document).ready(function () {
+            $(window).keydown(function (event) {
+                if (event.keyCode == 13) {
+                    event.preventDefault();
+                    return false;
+                }
+            });
+
+            var x = document.getElementById("all-chats");
+            x.style.display = "none";
+
+            var y = document.getElementById("single-chat");
+            y.style.display = "none";
+            
+
+        });
+
+
+        function submitForm() {
+    
+            let email = document.querySelector('#email').value
+            let password = document.querySelector('#password').value
+
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            var raw = JSON.stringify({
+                "email": email,
+                "password": password
+            });
+
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            fetch("http://" + window.location.host + "/api/v1/auth/login/", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    response_json = JSON.parse(result);
+                    
+                    sessionStorage.setItem("authToken", response_json.data.authToken);
+                    sessionStorage.setItem("userId", response_json.data.userId);
+
+                    // fetch the chats from here though a function call
+                    fetchAllChats("all_chats_list");
+                    
+                    
+
+                })
+        }
+
+
+        function fetchAllChats(id_name){
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+            myHeaders.append("Authorization", "Bearer " + sessionStorage.getItem("authToken"));
+
+            var requestOptions = {
+                method: 'GET',
+                headers: myHeaders,
+        
+                redirect: 'follow'
+            };
+
+            fetch("http://" + window.location.host + "/api/v1/chat/", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    response_json = JSON.parse(result);
+                    var total_data = ``;
+
+                    for (let item of response_json.data) {
+
+                        if (item.unread) {
+                            var first_p = `<p class="name" id="name ${item.name}">${item.name} &#128308<small class="date">${item.lastMessage.dateCreated}</small></p>`
+                        }
+                        else {
+                            var first_p = `<p class="name" id="name ${item.name}">${item.name}<small class="date">${item.lastMessage.dateCreated}</small></p>`
+
+                        }
+                        var second_p = `<p class="preview" id="customer ${item.id}">${item.lastMessage.content}</p>`
+
+                        var single_li = `
+                        <li class="contact" onclick="fetchSingleChat('${item.id}')">
+                            <div class="wrap">
+                                <div class="meta">
+                                    ${first_p}
+                                    ${second_p}
+                                </div>
+                            </div>
+                        </li>
+                        `
+
+                        total_data += single_li
+                    }
+                    var a = document.getElementById(id_name);
+                    a.innerHTML = total_data;
+
+                    
+
+                    var y = document.getElementById("my-form");
+                    y.style.display = "none";
+
+                    var x = document.getElementById("all-chats");
+                    x.style.display = "block";
+
+                })
+
+        }
+
+
+
+        
+
+
+        function fetchSingleChat(thread_id){
+            
+
+            //fetchAllChats("all_chats_list2");
+
+
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+            myHeaders.append("Authorization", "Bearer " + sessionStorage.getItem("authToken"));
+
+            var requestOptions = {
+                method: 'GET',
+                headers: myHeaders,
+                redirect: 'follow'
+            };
+
+            fetch("http://" + window.location.host + "/api/v1/chat/" + thread_id + "/", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    response_json = JSON.parse(result);
+                    var total_data = ``;
+
+                    
+
+                    var data = response_json.data
+
+                    
+                    var first_p = `<p class="name" id="name ${data.name}">${data.name}</p>`
+                    
+
+                    var single_li = `
+                    <li class="contact">
+                        <div class="wrap">
+                            <div class="meta">
+                                ${first_p}
+                            </div>
+                        </div>
+                    </li>
+                    `
+                    var a = document.getElementById("all_chats_list2");
+                    a.innerHTML = single_li;
+
+                    for (let item of response_json.data.messages) {
+
+                        if (item.sender) {
+
+                            if (item.read) {
+                                read_status = "&#128994"
+                            }
+                            else {
+                                read_status = "&#128995"
+
+                            }
+
+                            var first_p = `<div><li class="sent"><p>${ item.content }</p></li>
+                            <p class="sent margin"><small class="date_right">${read_status}</small></p></div>
+                            <p class="sent margin"><small class="date_right">${ item.dateCreated }</small></p></div>`
+                        }
+                        else {
+                            var first_p = `<div><li class="replies"><p>${ item.content }</p></li>
+                            <p class="replies margin"><small class="date_left">${ item.dateCreated }</small></p></div>`
+                        }
+                        
+
+                    
+                        
+
+                        total_data += first_p
+
+
+                    }
+
+
+                        // add the profile name 1
+                    var a = document.getElementById("all_messages");
+                    a.innerHTML = total_data;
+
+                    var b = document.getElementById("contact-profile");
+                    b.innerHTML = `<p>Email: <strong>${data.name}</strong></p>`
+
+                    var c = document.getElementById("hidden_thread_id").val = data.id
+                    var c = document.getElementById("hidden_thread_id").value = data.id
+                    c.value = data.id
+
+                    var d = document.getElementById("hidden_receiver_id").val = data.receiverId
+                    var d = document.getElementById("hidden_receiver_id").value = data.receiverId
+                    d.value = data.receiverId
+
+
+                        
+                   
+
+                })
+
+
+
+            var x = document.getElementById("all-chats");
+            x.style.display = "none";
+            
+            var x = document.getElementById("single-chat");
+            x.style.display = "block";
+
+            
+            
+            connectWebsocket();
+            
+            $(".messages").animate({ scrollTop: myMessages.scrollHeight }, "fast");
+            
+
+        }
+
+
+
+        
+        // https://github.com/joewalnes/reconnecting-websocket/
+        function ReconnectingWebSocket(a) { function f(g) { c = new WebSocket(a); if (b.debug || ReconnectingWebSocket.debugAll) { console.debug("ReconnectingWebSocket", "attempt-connect", a) } var h = c; var i = setTimeout(function () { if (b.debug || ReconnectingWebSocket.debugAll) { console.debug("ReconnectingWebSocket", "connection-timeout", a) } e = true; h.close(); e = false }, b.timeoutInterval); c.onopen = function (c) { clearTimeout(i); if (b.debug || ReconnectingWebSocket.debugAll) { console.debug("ReconnectingWebSocket", "onopen", a) } b.readyState = WebSocket.OPEN; g = false; b.onopen(c) }; c.onclose = function (h) { clearTimeout(i); c = null; if (d) { b.readyState = WebSocket.CLOSED; b.onclose(h) } else { b.readyState = WebSocket.CONNECTING; if (!g && !e) { if (b.debug || ReconnectingWebSocket.debugAll) { console.debug("ReconnectingWebSocket", "onclose", a) } b.onclose(h) } setTimeout(function () { f(true) }, b.reconnectInterval) } }; c.onmessage = function (c) { if (b.debug || ReconnectingWebSocket.debugAll) { console.debug("ReconnectingWebSocket", "onmessage", a, c.data) } b.onmessage(c) }; c.onerror = function (c) { if (b.debug || ReconnectingWebSocket.debugAll) { console.debug("ReconnectingWebSocket", "onerror", a, c) } b.onerror(c) } } this.debug = false; this.reconnectInterval = 1e3; this.timeoutInterval = 2e3; var b = this; var c; var d = false; var e = false; this.url = a; this.readyState = WebSocket.CONNECTING; this.URL = a; this.onopen = function (a) { }; this.onclose = function (a) { }; this.onmessage = function (a) { }; this.onerror = function (a) { }; f(a); this.send = function (d) { if (c) { if (b.debug || ReconnectingWebSocket.debugAll) { console.debug("ReconnectingWebSocket", "send", a, d) } return c.send(d) } else { throw "INVALID_STATE_ERR : Pausing to reconnect websocket" } }; this.close = function () { if (c) { d = true; c.close() } }; this.refresh = function () { if (c) { c.close() } } } ReconnectingWebSocket.debugAll = false
+
+        let myMessages = document.getElementById("myMessages")
+        myMessages.scrollTo(0, myMessages.scrollHeight)
+
+        
+        var chatSocket;
+        var audio = document.getElementById('chatAudio');
+
+        function connectWebsocket() {
+
+            var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    
+            
+    
+            let url = ws_scheme + '://' + window.location.host + "/chat/?wstoken=" + sessionStorage.getItem("authToken");
+    
+            chatSocket = new ReconnectingWebSocket(url)
+
+            chatSocket.onmessage = function (e) {
+                let data = JSON.parse(e.data)
+                
+                newMessage("whatsapp", data.message, data.customer_id);
+            }
+        }
+
+
+
+        function play() {
+
+            audio.play()
+
+        }
+
+        function newMessage(from, message, customerId) {
+
+
+            const date = new Date();
+
+            let day = date.getDate();
+            let month = date.getMonth() + 1;
+            let year = date.getFullYear();
+
+            let hour = date.getHours();
+            let minute = date.getMinutes();
+
+            let currentDate = `${year}-${month}-${day}`;
+            let currentTime = `${hour}:${minute}`
+
+            var sender_id = sessionStorage.getItem("userId")
+            var receiver_id = document.getElementById("hidden_receiver_id").value
+            var thread_id = document.getElementById("hidden_thread_id").value
+
+            
+
+
+            if (from === "current") {
+
+                chatSocket.send(JSON.stringify(
+                    {
+                        'message': message,
+                        "type": "current",
+                        "sender_id": sender_id,
+                        "receiver_id": receiver_id,
+                        "thread_id": thread_id
+                    }
+                ));
+
+                $(`<div>
+                <li class="sent">
+                    <p>${message}</p>
+                </li>
+                <p class="sent">
+                    <small class="date_right">&#128993</small>
+                    <small class="date_right">${currentDate + " " + currentTime}</small>
+                </p>
+            </div>`).appendTo($('.messages ul'));
+                $('.message-input input').val(null);
+                $('.contact.active .preview').html('<span>You: </span>' + message);
+                $(".messages").animate({ scrollTop: myMessages.scrollHeight }, "fast");
+            } else {
+                
+                    $(`<div>
+                    <li class="replies">
+                        <p>${message}</p>
+                    </li>
+                    <p class="replies">
+                        <small class="date_left">${currentDate + " " + currentTime}</small>
+                    </p>
+                </div>`).appendTo($('.messages ul'));
+                    $('.contact.active .preview').html(message);
+                    $(".messages").animate({ scrollTop: myMessages.scrollHeight }, "fast");
+                
+                
+                play();
+            }
+        };
+
+
+        
+
+        $('.submit').click(function () {
+            message = $(".message-input input").val();
+
+            
+
+            if ($.trim(message) == '') {
+                return false;
+            }
+            newMessage("current", message);
+        });
+
+        $(window).on('keydown', function (e) {
+            if (e.which == 13) {
+                message = $(".message-input input").val();
+                if ($.trim(message) == '') {
+                    return false;
+                }
+                newMessage("current", message);
+                return false;
+            }
+        });
+
+
+
+    </script>
+
+{% endblock %}

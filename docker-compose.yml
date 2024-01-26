@@ -1,0 +1,44 @@
+version: '3.12.1'
+services:
+  redis:
+    image: redis:7.0.6
+    container_name: my_redis
+    ports:
+      - "6379:6379"
+
+  migration:
+    build:
+      context: .
+    volumes:
+      - .:/django
+    command: python manage.py migrate --noinput
+
+  app:
+    build: .
+    volumes:
+      - .:/django
+    environment:
+      - DEBUG=True
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - 8000:8000
+    image: app:django
+    container_name: my_django_container
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - migration
+      -  redis
+
+  # celery:
+  #   restart: always
+  #   build:
+  #     context: .
+  #   environment:
+  #     - DEBUG=True
+  #   volumes:
+  #     - .:/django
+  #   container_name: celery
+  #   command: celery -A Spektre worker -l info
+  #   depends_on:
+  #     - redis
+  #     - app
